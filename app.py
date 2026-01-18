@@ -3,8 +3,8 @@ from groq import Groq
 
 # Konfigurasi Halaman
 st.set_page_config(page_title="Guru TKJ AI", page_icon="💻")
-st.title("🤖 Kelas Digital Pak Guru TKJ")
-st.caption("Materi: Jaringan, Mikrotik, Cybersecurity, & Coding")
+st.title("Kelas Digital TKJ")
+st.caption("Materi: Jaringan, Mikrotik, Cybersecurity, coding, dll")
 
 # Inisialisasi Client Groq dengan API Key Anda
 client = Groq(api_key="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")
@@ -30,7 +30,7 @@ if prompt := st.chat_input("Tanya apa hari ini, Nak?"):
     try:
         # Kirim ke Groq
         response = client.chat.completions.create(
-            model="llama3-8b-8192",
+            model="llama-3.3-70b-versatile",
             messages=st.session_state.messages
         )
         
