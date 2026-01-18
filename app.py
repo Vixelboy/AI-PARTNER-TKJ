@@ -4,7 +4,6 @@ from groq import Groq
 st.set_page_config(page_title="Guru TKJ AI", page_icon="💻")
 st.title("Digital Agent TKJ")
 st.caption("IP, Jaringan, Mikrotik, Cybersecurity, Coding, dll")
-st.caption("support by : Vixel Team")
 
 client = Groq(api_key="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")
 
@@ -36,5 +35,6 @@ if prompt := st.chat_input("Mau belajar apa hari ini?"):
         st.session_state.messages.append({"role": "assistant", "content": answer})
     except Exception as e:
         st.error(f"Waduh, koneksi putus: {e}")
+
 
 
