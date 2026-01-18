@@ -1,4 +1,11 @@
 import streamlit as st
+st.markdown("""
+    <style>
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    </style>
+    """, unsafe_allow_html=True)
 from groq import Groq
 
 
@@ -36,4 +43,5 @@ if prompt := st.chat_input("Tanya apa hari ini, Nak?"):
         st.session_state.messages.append({"role": "assistant", "content": answer})
     except Exception as e:
         st.error(f"Waduh, koneksi putus: {e}")
+
 
