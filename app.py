@@ -5,11 +5,11 @@ st.set_page_config(page_title="Guru TKJ AI", page_icon="💻")
 st.title("Digital Agent TKJ")
 st.caption("IP, Jaringan, Mikrotik, Cybersecurity, Coding, dll")
 
-client = Groq(api_key="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")
+client = Groq("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")
 
 if "messages" not in st.session_state:
     st.session_state.messages = [
-        {"role": "system", "content": "Anda adalah Guru TKJ yang ahli dan ramah. Gunakan analogi jaringan dalam menjelaskan."}
+        {"role": "system", "content": "Anda adalah Ahli IT paham coding,sistem,jaringan,komputer yang ahli dan ramah. Gunakan analogi jaringan dalam menjelaskan,dan pakai bahasa Gen z"}
     ]
     
 for message in st.session_state.messages:
@@ -35,6 +35,7 @@ if prompt := st.chat_input("Mau belajar apa hari ini?"):
         st.session_state.messages.append({"role": "assistant", "content": answer})
     except Exception as e:
         st.error(f"Waduh, koneksi putus: {e}")
+
 
 
 
