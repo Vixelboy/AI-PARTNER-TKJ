@@ -4,8 +4,6 @@ import requests
 import json
 import os
 
-# --- 1. KONFIGURASI FILE PENYIMPANAN ---
-# File ini akan otomatis terbuat di folder yang sama dengan kodinganmu
 MEMORY_FILE = "chat_history.json"
 
 def save_memory(messages):
@@ -18,7 +16,6 @@ def load_memory():
             return json.load(f)
     return None
 
-# --- 2. KONFIGURASI GOOGLE FORM ---
 FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLScUw0uz4dcpwZzQ6isJiICrlbPo0p_bdnE4UYqXCXKW5EXGyA/formResponse"
 ENTRY_ID = "entry.1158580211" 
 
@@ -30,24 +27,21 @@ def lapor_ke_sheets(nama):
     except:
         return False
 
-# --- 3. INITIALIZE GROQ ---
 client = Groq(api_key="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")
-
-# --- 4. SESSION STATE & LOAD MEMORY ---
+\
 if "user_name" not in st.session_state:
     st.session_state.user_name = None
 
 if "messages" not in st.session_state:
-    # Coba ambil data dari file JSON dulu
+  
     saved_chats = load_memory()
     if saved_chats:
         st.session_state.messages = saved_chats
     else:
         st.session_state.messages = [
-            {"role": "system", "content": "Anda adalah Ahli IT paham coding, sistem, jaringan, komputer yang ahli dan ramah. Gunakan analogi jaringan dan pakai bahasa Gen z."}
+            {"role": "system", "content": "Anda adalah Ahli IT paham coding, sistem, jaringan, komputer yang ahli dan ramah, pakai bahasa Gen z."}
         ]
 
-# --- 5. MODAL LOGIN ---
 if not st.session_state.user_name:
     st.set_page_config(page_title="Join Network", page_icon="🔑")
     st.title("👋 Welcome to Digital Agent TKJ")
@@ -66,7 +60,7 @@ st.set_page_config(page_title="Digital Agent TKJ", page_icon="💻")
 with st.sidebar:
     st.title(f"👤 {st.session_state.user_name}")
     st.divider()
-    theme_choice = st.selectbox("Pilih Vibe Chatbot:", ["Tech (Dark Mode)", "Cyberpunk (Neon)", "Kawaii (Pastel)"])
+    theme_choice = st.selectbox("Pilih Vibe Chatbot:", ["Tech (Dark Mode)", "Cyber (Neon)", "Kawaii (Pastel)"])
     
     # Tombol Hapus Memory
     if st.button("Hapus Riwayat Chat 🗑️"):
@@ -86,7 +80,7 @@ def apply_style(theme):
         i_user, i_bot = "👤", "💻"
     elif theme == "Cyberpunk (Neon)":
         bg, text, u_bubble, b_bubble = "#050505", "#00FF41", "linear-gradient(90deg, #FF00FF, #00FFFF)", "#111111"
-        i_user, i_bot = "🕶️", "🤖"
+        i_user, i_bot = "💽 ", "🤖"
     else: # Kawaii
         bg, text, u_bubble, b_bubble = "#FFF0F5", "#4B0082", "#FFB6C1", "#FFFFFF"
         i_user, i_bot = "🍓", "🧸"
@@ -105,7 +99,6 @@ def apply_style(theme):
 
 icon_user, icon_bot = apply_style(theme_choice)
 
-# --- 7. RENDER CHAT ---
 st.title("Digital Agent TKJ")
 for message in st.session_state.messages:
     if message["role"] != "system":
@@ -119,8 +112,8 @@ for message in st.session_state.messages:
         </div>
         """, unsafe_allow_html=True)
 
-# --- 8. INPUT CHAT & SAVE TO MEMORY ---
-if prompt := st.chat_input(f"Ada kendala apa hari ini, {st.session_state.user_name}?"):
+
+if prompt := st.chat_input(f"Mau tanya apaa??, {st.session_state.user_name}?"):
     st.session_state.messages.append({"role": "user", "content": prompt})
     try:
         response = client.chat.completions.create(model="llama-3.1-8b-instant", messages=st.session_state.messages)
@@ -132,3 +125,4 @@ if prompt := st.chat_input(f"Ada kendala apa hari ini, {st.session_state.user_na
         st.rerun()
     except Exception as e:
         st.error(f"Koneksi RTO: {e}")
+
