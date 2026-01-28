@@ -88,11 +88,11 @@ def apply_style(theme):
     st.markdown(f"""
     <style>
     .stApp {{ background-color: {bg}; color: {text}; }}
-    .chat-container {{ display: flex; flex-direction: column; margin: 10px 0; }}
+    .chat-container {{ display: flex; flex-direction: column; margin: 0px 0; }}
     .bubble {{ padding: 12px 18px; border-radius: 18px; max-width: 80%; font-size: 15px; line-height: 1.5; }}
     .user-style {{ align-self: flex-end; background: {u_bubble}; color: white; border-bottom-right-radius: 2px; text-align: right; }}
     .bot-style {{ align-self: flex-start; background-color: {b_bubble}; color: {text}; border: 1px solid #444; border-bottom-left-radius: 2px; }}
-    .name-label {{ font-size: 11px; font-weight: bold; margin-bottom: 2px; opacity: 0.7; }}
+    .name-label {{ font-size: 11px; font-weight: bold; margin-bottom: 0px; opacity: 0.7; }}
     </style>
     """, unsafe_allow_html=True)
     return i_user, i_bot
@@ -125,4 +125,5 @@ if prompt := st.chat_input(f"Mau tanya apaa??, {st.session_state.user_name}?"):
         st.rerun()
     except Exception as e:
         st.error(f"Koneksi RTO: {e}")
+
 
