@@ -1,17 +1,22 @@
 import streamlit as st
 from groq import Groq
-import base64
 
 # --- CONFIG PAGE ---
 st.set_page_config(page_title="Guru TKJ AI", page_icon="💻")
 
 # --- FUNCTION UNTUK SUARA ---
 def speak(text):
-    """Fungsi untuk memutar suara greeting menggunakan Google TTS"""
-    tts_html = f"""
-    <iframe allow="autoplay" style="display:none" src="https://translate.google.com/translate_tts?ie=UTF-8&q={text.replace(' ', '%20')}&tl=id&client=tw-ob"></iframe>
+    """Memanggil Google TTS melalui HTML5 Audio"""
+    clean_text = text.replace(' ', '%20')
+    tts_url = f"https://translate.google.com/translate_tts?ie=UTF-8&q={clean_text}&tl=id&client=tw-ob"
+    
+    # Komponen HTML untuk memutar audio
+    audio_html = f"""
+        <audio autoplay>
+            <source src="{tts_url}" type="audio/mpeg">
+        </audio>
     """
-    st.components.v1.html(tts_html, height=0)
+    st.components.v1.html(audio_html, height=0)
 
 # --- INITIALIZE GROQ ---
 client = Groq(api_key="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")
@@ -23,7 +28,7 @@ if "greeted" not in st.session_state:
     st.session_state.greeted = False
 if "messages" not in st.session_state:
     st.session_state.messages = [
-        {"role": "system", "content": "Anda adalah Ahli IT paham coding,sistem,jaringan,komputer yang ahli dan ramah. Gunakan analogi jaringan dalam menjelaskan,dan pakai bahasa Gen z"}
+        {"role": "system", "content": "Anda adalah Ahli IT paham coding,sistem,jaringan,komputer yang ahli dan ramah. Gunakan bahasa Gen z."}
     ]
 
 # --- MODAL INPUT NAMA ---
@@ -38,16 +43,24 @@ if not st.session_state.user_name:
             st.rerun()
     st.stop()
 
-# --- TRIGGER SUARA GREETING (Hanya Sekali) ---
+# --- TRIGGER SUARA GREETING OTOMATIS ---
+greeting_msg = f"Halo {st.session_state.user_name}, selamat datang di Digital Agent T K J."
 if not st.session_state.greeted:
-    greeting_text = f"Halo {st.session_state.user_name}, selamat datang di Digital Agent T K J. Mau nanya apa hari ini?"
-    speak(greeting_text)
+    speak(greeting_msg)
     st.session_state.greeted = True
+    st.toast(f"🔊 Mengucapkan salam...")
 
-# --- SIDEBAR & THEME LOGIC ---
+# --- SIDEBAR: TEMA & TOMBOL SUARA MANUAL ---
 with st.sidebar:
     st.title(f"👤 {st.session_state.user_name}")
+    
+    # TOMBOL MANUAL (Plan B)
+    if st.button("🔊 Putar Ulang Salam"):
+        speak(greeting_msg)
+        
+    st.divider()
     theme_choice = st.selectbox("Pilih Vibe:", ["Tech (Dark Mode)", "Cyberpunk (Neon)", "Kawaii (Pastel)"])
+    
     if st.button("Reset Session 🔄"):
         st.session_state.user_name = None
         st.session_state.greeted = False
@@ -71,9 +84,9 @@ def apply_style(theme):
     .stApp {{ background-color: {bg}; color: {text}; }}
     .chat-container {{ display: flex; flex-direction: column; margin: 10px 0; }}
     .bubble {{ padding: 12px 18px; border-radius: 18px; max-width: 80%; font-size: 15px; }}
-    .user-style {{ align-self: flex-end; background: {u_bubble}; color: white; border-bottom-right-radius: 2px; }}
+    .user-style {{ align-self: flex-end; background: {u_bubble}; color: white; border-bottom-right-radius: 2px; text-align: right; }}
     .bot-style {{ align-self: flex-start; background-color: {b_bubble}; color: {text}; border: 1px solid #444; border-bottom-left-radius: 2px; }}
-    .name-label {{ font-size: 10px; font-weight: bold; margin-bottom: 2px; opacity: 0.8; }}
+    .name-label {{ font-size: 11px; font-weight: bold; margin-bottom: 2px; opacity: 0.8; }}
     </style>
     """, unsafe_allow_html=True)
     return i_user, i_bot
