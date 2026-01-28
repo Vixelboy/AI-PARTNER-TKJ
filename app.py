@@ -1,69 +1,58 @@
 import streamlit as st
 from groq import Groq
+import requests
 
-# --- CONFIG PAGE ---
-st.set_page_config(page_title="Guru TKJ AI", page_icon="💻")
+# --- KONFIGURASI GOOGLE FORM (SUDAH DISESUAIKAN) ---
+# Link ini akan mengirim data langsung ke spreadsheet yang terhubung dengan form kamu
+FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLScUw0uz4dcpwZzQ6isJiICrlbPo0p_bdnE4UYqXCXKW5EXGyA/formResponse"
+ENTRY_ID = "entry.1158580211" 
 
-# --- FUNCTION UNTUK SUARA ---
-def speak(text):
-    """Memanggil Google TTS melalui HTML5 Audio"""
-    clean_text = text.replace(' ', '%20')
-    tts_url = f"https://translate.google.com/translate_tts?ie=UTF-8&q={clean_text}&tl=id&client=tw-ob"
-    
-    # Komponen HTML untuk memutar audio
-    audio_html = f"""
-        <audio autoplay>
-            <source src="{tts_url}" type="audio/mpeg">
-        </audio>
-    """
-    st.components.v1.html(audio_html, height=0)
+def lapor_ke_sheets(nama):
+    """Mengirim nama user ke Google Sheets via Google Form background request"""
+    payload = {ENTRY_ID: nama}
+    try:
+        # Mengirim data secara diam-diam (background)
+        requests.post(FORM_URL, data=payload)
+        return True
+    except:
+        return False
 
 # --- INITIALIZE GROQ ---
 client = Groq(api_key="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")
 
-# --- INITIALIZE SESSION STATE ---
+# --- SESSION STATE ---
 if "user_name" not in st.session_state:
     st.session_state.user_name = None
-if "greeted" not in st.session_state:
-    st.session_state.greeted = False
+
 if "messages" not in st.session_state:
     st.session_state.messages = [
-        {"role": "system", "content": "Anda adalah Ahli IT paham coding,sistem,jaringan,komputer yang ahli dan ramah. Gunakan bahasa Gen z."}
+        {"role": "system", "content": "Anda adalah Ahli IT paham coding, sistem, jaringan, komputer yang ahli dan ramah. Gunakan analogi jaringan dan pakai bahasa Gen z."}
     ]
 
 # --- MODAL INPUT NAMA ---
 if not st.session_state.user_name:
-    st.title("👋 Welcome, Techie!")
+    st.title("👋 Welcome to Digital Agent TKJ")
+    st.write("Silahkan join jaringan untuk mulai belajar.")
     with st.form("name_form"):
-        name_input = st.text_input("Masukkan namamu:", placeholder="Contoh: Ikbal")
+        name_input = st.text_input("Siapa namamu?", placeholder="Contoh: Ikbal")
         submit_name = st.form_submit_button("Join Network")
         
         if submit_name and name_input:
+            # Proses simpan ke Google Sheets (lewat Form)
+            lapor_ke_sheets(name_input)
+            
             st.session_state.user_name = name_input
+            st.success(f"Log In Berhasil! Selamat datang, {name_input}.")
             st.rerun()
     st.stop()
 
-# --- TRIGGER SUARA GREETING OTOMATIS ---
-greeting_msg = f"Halo {st.session_state.user_name}, selamat datang di Digital Agent T K J."
-if not st.session_state.greeted:
-    speak(greeting_msg)
-    st.session_state.greeted = True
-    st.toast(f"🔊 Mengucapkan salam...")
-
-# --- SIDEBAR: TEMA & TOMBOL SUARA MANUAL ---
+# --- SIDEBAR & THEME LOGIC ---
 with st.sidebar:
     st.title(f"👤 {st.session_state.user_name}")
-    
-    # TOMBOL MANUAL (Plan B)
-    if st.button("🔊 Putar Ulang Salam"):
-        speak(greeting_msg)
-        
     st.divider()
-    theme_choice = st.selectbox("Pilih Vibe:", ["Tech (Dark Mode)", "Cyberpunk (Neon)", "Kawaii (Pastel)"])
-    
+    theme_choice = st.selectbox("Pilih Vibe Interface:", ["Tech (Dark Mode)", "Cyberpunk (Neon)", "Kawaii (Pastel)"])
     if st.button("Reset Session 🔄"):
         st.session_state.user_name = None
-        st.session_state.greeted = False
         st.session_state.messages = [st.session_state.messages[0]]
         st.rerun()
 
@@ -83,32 +72,37 @@ def apply_style(theme):
     <style>
     .stApp {{ background-color: {bg}; color: {text}; }}
     .chat-container {{ display: flex; flex-direction: column; margin: 10px 0; }}
-    .bubble {{ padding: 12px 18px; border-radius: 18px; max-width: 80%; font-size: 15px; }}
+    .bubble {{ padding: 12px 18px; border-radius: 18px; max-width: 80%; font-size: 15px; line-height: 1.5; }}
     .user-style {{ align-self: flex-end; background: {u_bubble}; color: white; border-bottom-right-radius: 2px; text-align: right; }}
     .bot-style {{ align-self: flex-start; background-color: {b_bubble}; color: {text}; border: 1px solid #444; border-bottom-left-radius: 2px; }}
-    .name-label {{ font-size: 11px; font-weight: bold; margin-bottom: 2px; opacity: 0.8; }}
+    .name-label {{ font-size: 11px; font-weight: bold; margin-bottom: 2px; opacity: 0.7; }}
     </style>
     """, unsafe_allow_html=True)
     return i_user, i_bot
 
 icon_user, icon_bot = apply_style(theme_choice)
 
-# --- RENDER CHAT ---
+# --- HEADER ---
 st.title("Digital Agent TKJ")
+st.caption(f"Status: Online | User: {st.session_state.user_name}")
+
+# --- RENDER CHAT ---
 for message in st.session_state.messages:
     if message["role"] != "system":
         is_user = message["role"] == "user"
         side_class = "user-style" if is_user else "bot-style"
         display_name = st.session_state.user_name if is_user else "GURU TKJ"
+        icon = icon_user if is_user else icon_bot
+        
         st.markdown(f"""
         <div class="chat-container">
             <div class="name-label" style="text-align: {'right' if is_user else 'left'};">{display_name}</div>
-            <div class="bubble {side_class}">{icon_user if is_user else icon_bot} {message['content']}</div>
+            <div class="bubble {side_class}">{icon} {message['content']}</div>
         </div>
         """, unsafe_allow_html=True)
 
 # --- INPUT LOGIC ---
-if prompt := st.chat_input(f"Ping me something, {st.session_state.user_name}..."):
+if prompt := st.chat_input(f"Ada yang error jaringannya, {st.session_state.user_name}?"):
     st.session_state.messages.append({"role": "user", "content": prompt})
     try:
         response = client.chat.completions.create(model="llama-3.1-8b-instant", messages=st.session_state.messages)
