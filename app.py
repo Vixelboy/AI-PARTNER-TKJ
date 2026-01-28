@@ -6,12 +6,29 @@ FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLScUw0uz4dcpwZzQ6isJiICrlbPo
 ENTRY_ID = "entry.1158580211" 
 
 def lapor_ke_sheets(nama):
-    payload = {ENTRY_ID: nama}
-    try:
+    # Link Response (Pastikan tidak ada spasi di ujung)
+    URL = "https://docs.google.com/forms/d/e/1FAIpQLScUw0uz4dcpwZzQ6isJiICrlbPo0p_bdnE4UYqXCXKW5EXGyA/formResponse"
     
-        requests.post(FORM_URL, data=payload, timeout=5)
-        return True
-    except:
+    # ID yang kita temukan tadi
+    ID_NAMA = "entry.1158580211"
+    
+    # Kita buat payload yang lebih bersih
+    payload = {
+        ID_NAMA: str(nama),  # Memastikan nama dikirim sebagai teks/string
+        "draftResponse": '[]',
+        "pageHistory": "0"
+    }
+    
+    headers = {
+        "Content-Type": "application/x-www-form-urlencoded"
+    }
+    
+    try:
+        # Mengirim dengan headers lengkap agar disangka dari browser asli
+        r = requests.post(URL, data=payload, headers=headers, timeout=10)
+        return r.status_code == 200
+    except Exception as e:
+        st.error(f"Error Jaringan: {e}")
         return False
 
 # --- 2. INITIALIZE GROQ ---
@@ -112,3 +129,4 @@ if prompt := st.chat_input(f"Mau tanya apa hari ini, {st.session_state.user_name
         st.rerun()
     except Exception as e:
         st.error(f"Koneksi RTO: {e}")
+
