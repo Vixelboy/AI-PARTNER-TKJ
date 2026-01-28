@@ -4,21 +4,8 @@ import requests
 import json
 import os
 
-# --- 1. KONFIGURASI FILE PENYIMPANAN ---
-# File ini akan otomatis terbuat di folder yang sama dengan kodinganmu
-MEMORY_FILE = "chat_history.json"
-
-def save_memory(messages):
-    with open(MEMORY_FILE, "w") as f:
-        json.dump(messages, f)
-
-def load_memory():
-    if os.path.exists(MEMORY_FILE):
-        with open(MEMORY_FILE, "r") as f:
-            return json.load(f)
-    return None
-
-# --- 2. KONFIGURASI GOOGLE FORM ---
+# --- 1. KONFIGURASI FILE & GOOGLE SHEETS ---
+MEMORY_FILE = "chat_history_3d.json"
 FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLScUw0uz4dcpwZzQ6isJiICrlbPo0p_bdnE4UYqXCXKW5EXGyA/formResponse"
 ENTRY_ID = "entry.1158580211" 
 
@@ -27,108 +14,152 @@ def lapor_ke_sheets(nama):
     try:
         requests.post(FORM_URL, data=payload, timeout=5)
         return True
-    except:
-        return False
+    except: return False
 
-# --- 3. INITIALIZE GROQ ---
+def save_memory(messages):
+    with open(MEMORY_FILE, "w") as f: json.dump(messages, f)
+
+def load_memory():
+    if os.path.exists(MEMORY_FILE):
+        with open(MEMORY_FILE, "r") as f: return json.load(f)
+    return None
+
+# --- 2. INITIALIZE GROQ ---
 client = Groq(api_key="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")
 
-# --- 4. SESSION STATE & LOAD MEMORY ---
+# --- 3. SESSION STATE ---
 if "user_name" not in st.session_state:
     st.session_state.user_name = None
 
 if "messages" not in st.session_state:
-    # Coba ambil data dari file JSON dulu
     saved_chats = load_memory()
-    if saved_chats:
-        st.session_state.messages = saved_chats
-    else:
-        st.session_state.messages = [
-            {"role": "system", "content": "Anda adalah Ahli IT paham coding, sistem, jaringan, komputer yang ahli dan ramah. Gunakan analogi jaringan dan pakai bahasa Gen z."}
-        ]
+    st.session_state.messages = saved_chats if saved_chats else [
+        {"role": "system", "content": "Anda ahli IT ramah, gunakan bahasa Gen Z dan analogi jaringan."}
+    ]
 
-# --- 5. MODAL LOGIN ---
+# --- 4. CSS GLASSMORPHISM 3D (THE MAGIC) ---
+def apply_3d_style():
+    st.markdown("""
+    <style>
+    /* Background Animasi */
+    .stApp {
+        background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+        background-attachment: fixed;
+    }
+
+    /* Container Chat 3D */
+    .chat-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        padding: 10px;
+    }
+
+    /* Efek Kaca (Glassmorphism) */
+    .bubble {
+        padding: 15px 20px;
+        border-radius: 25px;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        font-size: 15px;
+        max-width: 80%;
+        color: white;
+    }
+
+    /* Bubble User - Melayang Biru */
+    .user-3d {
+        align-self: flex-end;
+        background: rgba(0, 123, 255, 0.25);
+        border-right: 4px solid #00d2ff;
+        box-shadow: 5px 5px 15px rgba(0, 210, 255, 0.2);
+    }
+
+    /* Bubble Bot - Melayang Gelap */
+    .bot-3d {
+        align-self: flex-start;
+        background: rgba(255, 255, 255, 0.05);
+        border-left: 4px solid #ff00ff;
+        box-shadow: -5px 5px 15px rgba(255, 0, 255, 0.2);
+    }
+
+    .name-label {
+        font-size: 10px;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 5px;
+        color: rgba(255,255,255,0.6);
+    }
+    
+    /* Tombol & Input 3D */
+    .stButton>button {
+        border-radius: 12px;
+        border: none;
+        background: linear-gradient(145deg, #1e1e3f, #2b2b5a);
+        box-shadow: 6px 6px 12px #0a0a14, -6px -6px 12px #26264e;
+        transition: 0.3s;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+# --- 5. LOGIN MODAL ---
 if not st.session_state.user_name:
-    st.set_page_config(page_title="Join Network", page_icon="🔑")
-    st.title("👋 Welcome to Digital Agent TKJ")
-    with st.form("name_form"):
-        name_input = st.text_input("Siapa namamu?", placeholder="Masukkan nama...")
-        submit_name = st.form_submit_button("Join Network 🚀")
-        if submit_name and name_input:
-            lapor_ke_sheets(name_input)
-            st.session_state.user_name = name_input
+    st.set_page_config(page_title="Access Point TKJ", page_icon="🔑")
+    apply_3d_style()
+    st.markdown("<h1 style='text-align: center; color: white;'>🖥️ JOIN NETWORK</h1>", unsafe_allow_html=True)
+    with st.form("login"):
+        name = st.text_input("Identitas User:")
+        btn = st.form_submit_button("CONNECT 🚀")
+        if btn and name:
+            lapor_ke_sheets(name)
+            st.session_state.user_name = name
             st.rerun()
     st.stop()
 
-# --- 6. TEMA & INTERFACE ---
-st.set_page_config(page_title="Digital Agent TKJ", page_icon="💻")
+# --- 6. MAIN APP ---
+st.set_page_config(page_title="Digital Agent TKJ 4.0", page_icon="💻")
+apply_3d_style()
 
 with st.sidebar:
-    st.title(f"👤 {st.session_state.user_name}")
-    st.divider()
-    theme_choice = st.selectbox("Pilih Vibe Chatbot:", ["Tech (Dark Mode)", "Cyberpunk (Neon)", "Kawaii (Pastel)"])
-    
-    # Tombol Hapus Memory
-    if st.button("Hapus Riwayat Chat 🗑️"):
-        if os.path.exists(MEMORY_FILE):
-            os.remove(MEMORY_FILE)
+    st.markdown(f"### 👤 Active User: {st.session_state.user_name}")
+    if st.button("🗑️ Clear History"):
+        if os.path.exists(MEMORY_FILE): os.remove(MEMORY_FILE)
         st.session_state.messages = [st.session_state.messages[0]]
         st.rerun()
-    
-    if st.button("Log Out 🔄"):
+    if st.button("🔄 Logout"):
         st.session_state.user_name = None
         st.rerun()
 
-# --- (Fungsi apply_style tetap sama seperti sebelumnya) ---
-def apply_style(theme):
-    if theme == "Tech (Dark Mode)":
-        bg, text, u_bubble, b_bubble = "#0E1117", "#FFFFFF", "#007BFF", "#262730"
-        i_user, i_bot = "👤", "💻"
-    elif theme == "Cyberpunk (Neon)":
-        bg, text, u_bubble, b_bubble = "#050505", "#00FF41", "linear-gradient(90deg, #FF00FF, #00FFFF)", "#111111"
-        i_user, i_bot = "🕶️", "🤖"
-    else: # Kawaii
-        bg, text, u_bubble, b_bubble = "#FFF0F5", "#4B0082", "#FFB6C1", "#FFFFFF"
-        i_user, i_bot = "🍓", "🧸"
-
-    st.markdown(f"""
-    <style>
-    .stApp {{ background-color: {bg}; color: {text}; }}
-    .chat-container {{ display: flex; flex-direction: column; margin: 10px 0; }}
-    .bubble {{ padding: 12px 18px; border-radius: 18px; max-width: 80%; font-size: 15px; line-height: 1.5; }}
-    .user-style {{ align-self: flex-end; background: {u_bubble}; color: white; border-bottom-right-radius: 2px; text-align: right; }}
-    .bot-style {{ align-self: flex-start; background-color: {b_bubble}; color: {text}; border: 1px solid #444; border-bottom-left-radius: 2px; }}
-    .name-label {{ font-size: 11px; font-weight: bold; margin-bottom: 2px; opacity: 0.7; }}
-    </style>
-    """, unsafe_allow_html=True)
-    return i_user, i_bot
-
-icon_user, icon_bot = apply_style(theme_choice)
+st.title("Digital Agent TKJ 4.0")
+st.caption("UI Prototype: 3D Glassmorphism Edition")
 
 # --- 7. RENDER CHAT ---
-st.title("Digital Agent TKJ")
-for message in st.session_state.messages:
-    if message["role"] != "system":
-        is_user = message["role"] == "user"
-        side_class = "user-style" if is_user else "bot-style"
-        display_name = st.session_state.user_name if is_user else "GURU TKJ"
+for msg in st.session_state.messages:
+    if msg["role"] != "system":
+        is_user = msg["role"] == "user"
+        style = "user-3d" if is_user else "bot-3d"
+        name = st.session_state.user_name if is_user else "SERVER AI"
+        icon = "👤" if is_user else "🤖"
+        
         st.markdown(f"""
-        <div class="chat-container">
-            <div class="name-label" style="text-align: {'right' if is_user else 'left'};">{display_name}</div>
-            <div class="bubble {side_class}">{icon_user if is_user else icon_bot} {message['content']}</div>
+        <div class="chat-wrapper">
+            <div class="{style} bubble">
+                <div class="name-label">{name}</div>
+                {icon} {msg['content']}
+            </div>
         </div>
         """, unsafe_allow_html=True)
 
-# --- 8. INPUT CHAT & SAVE TO MEMORY ---
-if prompt := st.chat_input(f"Ada kendala apa hari ini, {st.session_state.user_name}?"):
+# --- 8. INPUT ---
+if prompt := st.chat_input("Input command..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     try:
         response = client.chat.completions.create(model="llama-3.1-8b-instant", messages=st.session_state.messages)
         answer = response.choices[0].message.content
         st.session_state.messages.append({"role": "assistant", "content": answer})
-        
-        # SIMPAN KE FILE JSON
         save_memory(st.session_state.messages)
         st.rerun()
     except Exception as e:
-        st.error(f"Koneksi RTO: {e}")
+        st.error(f"Signal Lost: {e}")
