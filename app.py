@@ -4,9 +4,7 @@ import requests
 import json
 import os
 
-# --- 1. KONFIGURASI AWAL (HANYA SATU KALI) ---
-st.set_page_config(page_title="Digital Agent TKJ 4.0", page_icon="💻", layout="wide")
-
+# --- 1. KONFIGURASI FILE & GOOGLE SHEETS ---
 MEMORY_FILE = "chat_history_3d.json"
 FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLScUw0uz4dcpwZzQ6isJiICrlbPo0p_bdnE4UYqXCXKW5EXGyA/formResponse"
 ENTRY_ID = "entry.1158580211" 
@@ -27,7 +25,6 @@ def load_memory():
     return None
 
 # --- 2. INITIALIZE GROQ ---
-# Catatan: Amankan API Key ini nanti di st.secrets!
 client = Groq(api_key="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")
 
 # --- 3. SESSION STATE ---
@@ -40,32 +37,17 @@ if "messages" not in st.session_state:
         {"role": "system", "content": "Anda ahli IT ramah, gunakan bahasa Gen Z dan analogi jaringan."}
     ]
 
-# --- 4. CSS GLASSMORPHISM 3D (REVISED) ---
+# --- 4. CSS GLASSMORPHISM 3D (THE MAGIC) ---
 def apply_3d_style():
     st.markdown("""
     <style>
-    /* Menghilangkan Header Default & Spasi Putih */
-    header {visibility: hidden;}
-    .block-container {
-        padding-top: 2rem !important;
-        padding-bottom: 5rem !important;
-    }
-
-    /* Background Aplikasi */
+    /* Background Animasi */
     .stApp {
         background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
         background-attachment: fixed;
     }
 
-    /* Header Rata Atas (Area Hitam) */
-    [data-testid="stHeader"] {
-        background: rgba(0, 0, 0, 0.85) !important;
-        backdrop-filter: blur(10px);
-        height: 60px;
-        border-bottom: 1px solid rgba(255,255,255,0.1);
-    }
-
-    /* Container Chat */
+    /* Container Chat 3D */
     .chat-wrapper {
         display: flex;
         flex-direction: column;
@@ -73,86 +55,75 @@ def apply_3d_style():
         padding: 10px;
     }
 
-    /* Bubble Glassmorphism */
+    /* Efek Kaca (Glassmorphism) */
     .bubble {
         padding: 15px 20px;
-        border-radius: 20px;
+        border-radius: 25px;
         backdrop-filter: blur(10px);
         -webkit-backdrop-filter: blur(10px);
         border: 1px solid rgba(255, 255, 255, 0.1);
         box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
         font-size: 15px;
+        max-width: 80%;
         color: white;
-        margin-bottom: 10px;
     }
 
-    /* User Bubble (Kanan) */
+    /* Bubble User - Melayang Biru */
     .user-3d {
         align-self: flex-end;
-        background: rgba(0, 123, 255, 0.2);
+        background: rgba(0, 123, 255, 0.25);
         border-right: 4px solid #00d2ff;
-        box-shadow: 0 0 15px rgba(0, 210, 255, 0.3);
-        margin-left: 20%;
+        box-shadow: 5px 5px 15px rgba(0, 210, 255, 0.2);
     }
 
-    /* Bot Bubble (Kiri) */
+    /* Bubble Bot - Melayang Gelap */
     .bot-3d {
         align-self: flex-start;
         background: rgba(255, 255, 255, 0.05);
         border-left: 4px solid #ff00ff;
-        box-shadow: 0 0 15px rgba(255, 0, 255, 0.2);
-        margin-right: 20%;
+        box-shadow: -5px 5px 15px rgba(255, 0, 255, 0.2);
     }
 
     .name-label {
         font-size: 10px;
         font-weight: bold;
         text-transform: uppercase;
+        letter-spacing: 1px;
         margin-bottom: 5px;
-        color: rgba(255,255,255,0.5);
-    }
-
-    /* Area Hitam Bawah (Chat Input) */
-    div[data-testid="stChatInput"] {
-        background-color: rgba(0, 0, 0, 0.7) !important;
-        border: 1px solid #444 !important;
-        border-radius: 15px !important;
-        padding: 5px !important;
+        color: rgba(255,255,255,0.6);
     }
     
-    /* Tombol & Sidebar 3D */
+    /* Tombol & Input 3D */
     .stButton>button {
-        width: 100%;
-        border-radius: 10px;
-        background: linear-gradient(145deg, #1e1e3f, #2b2b5a);
-        color: white;
+        border-radius: 12px;
         border: none;
+        background: linear-gradient(145deg, #1e1e3f, #2b2b5a);
+        box-shadow: 6px 6px 12px #0a0a14, -6px -6px 12px #26264e;
+        transition: 0.3s;
     }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 5. LOGIC PEMISAH (LOGIN VS MAIN) ---
+# --- 5. LOGIN MODAL ---
 if not st.session_state.user_name:
+    st.set_page_config(page_title="Access Point TKJ", page_icon="🔑")
     apply_3d_style()
-    st.markdown("<h1 style='text-align: center; color: white; margin-top: 100px;'>🖥️ JOIN NETWORK</h1>", unsafe_allow_html=True)
-    with st.container():
-        _, col2, _ = st.columns([1, 2, 1])
-        with col2:
-            with st.form("login"):
-                name = st.text_input("Identitas User (Nickname):")
-                btn = st.form_submit_button("CONNECT 🚀")
-                if btn and name:
-                    lapor_ke_sheets(name)
-                    st.session_state.user_name = name
-                    st.rerun()
+    st.markdown("<h1 style='text-align: center; color: white;'>🖥️ JOIN NETWORK</h1>", unsafe_allow_html=True)
+    with st.form("login"):
+        name = st.text_input("Identitas User:")
+        btn = st.form_submit_button("CONNECT 🚀")
+        if btn and name:
+            lapor_ke_sheets(name)
+            st.session_state.user_name = name
+            st.rerun()
     st.stop()
 
-# --- 6. MAIN APP INTERFACE ---
+# --- 6. MAIN APP ---
+st.set_page_config(page_title="Digital Agent TKJ 4.0", page_icon="💻")
 apply_3d_style()
 
 with st.sidebar:
-    st.markdown(f"### 👤 Active User: **{st.session_state.user_name}**")
-    st.divider()
+    st.markdown(f"### 👤 Active User: {st.session_state.user_name}")
     if st.button("🗑️ Clear History"):
         if os.path.exists(MEMORY_FILE): os.remove(MEMORY_FILE)
         st.session_state.messages = [st.session_state.messages[0]]
@@ -161,47 +132,34 @@ with st.sidebar:
         st.session_state.user_name = None
         st.rerun()
 
-# Header Judul
-st.markdown("<h2 style='color: white;'>Digital Agent TKJ 4.0</h2>", unsafe_allow_html=True)
-st.markdown("<p style='color: #aaa;'>UI Prototype: 3D Glassmorphism Edition</p>", unsafe_allow_html=True)
-st.divider()
+st.title("Digital Agent TKJ 4.0")
+st.caption("UI Prototype: 3D Glassmorphism Edition")
 
 # --- 7. RENDER CHAT ---
-chat_container = st.container()
-with chat_container:
-    for msg in st.session_state.messages:
-        if msg["role"] != "system":
-            is_user = msg["role"] == "user"
-            style = "user-3d" if is_user else "bot-3d"
-            name = st.session_state.user_name if is_user else "SERVER AI"
-            icon = "👤" if is_user else "🤖"
-            
-            st.markdown(f"""
-            <div class="chat-wrapper">
-                <div class="{style} bubble">
-                    <div class="name-label">{name}</div>
-                    {icon} {msg['content']}
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-
-# --- 8. INPUT COMMAND ---
-if prompt := st.chat_input("Input command..."):
-    # Append user message
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    
-    try:
-        # Panggil API Groq
-        response = client.chat.completions.create(
-            model="llama-3.1-8b-instant", 
-            messages=st.session_state.messages
-        )
-        answer = response.choices[0].message.content
+for msg in st.session_state.messages:
+    if msg["role"] != "system":
+        is_user = msg["role"] == "user"
+        style = "user-3d" if is_user else "bot-3d"
+        name = st.session_state.user_name if is_user else "SERVER AI"
+        icon = "👤" if is_user else "🤖"
         
-        # Append bot response
+        st.markdown(f"""
+        <div class="chat-wrapper">
+            <div class="{style} bubble">
+                <div class="name-label">{name}</div>
+                {icon} {msg['content']}
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+# --- 8. INPUT ---
+if prompt := st.chat_input("Input command..."):
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    try:
+        response = client.chat.completions.create(model="llama-3.1-8b-instant", messages=st.session_state.messages)
+        answer = response.choices[0].message.content
         st.session_state.messages.append({"role": "assistant", "content": answer})
         save_memory(st.session_state.messages)
         st.rerun()
-        
     except Exception as e:
         st.error(f"Signal Lost: {e}")
